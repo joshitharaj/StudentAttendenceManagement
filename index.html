@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Student Attendance</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+background:#f0f2f5;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.container{
+background:white;
+padding:30px;
+width:400px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+
+h2{
+text-align:center;
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border:1px solid gray;
+border-radius:5px;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#007bff;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+font-size:16px;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+#dashboard{
+display:none;
+}
+
+table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+}
+
+table,th,td{
+border:1px solid gray;
+}
+
+th,td{
+padding:10px;
+text-align:center;
+}
+
+.logout{
+background:red;
+}
+
+.logout:hover{
+background:darkred;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div id="login">
+
+<h2>Student Login</h2>
+
+<input type="text" id="name" placeholder="Student Name">
+
+<input type="text" id="usn" placeholder="USN">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+<div id="dashboard">
+
+<h2>Attendance Dashboard</h2>
+
+<p id="studentInfo"></p>
+
+<button onclick="markAttendance()">Mark Today's Attendance</button>
+
+<button class="logout" onclick="logout()">Logout</button>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Date</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="attendanceTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<!-- Firebase -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+query,
+where,
+getDocs
+}
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBnZuJ6_OI4IYAagA9BOeVCIs-S30OLRec",
+  authDomain: "attendancesystem-f7d66.firebaseapp.com",
+  projectId: "attendancesystem-f7d66",
+  storageBucket: "attendancesystem-f7d66.firebasestorage.app",
+  messagingSenderId: "780520001034",
+  appId: "1:780520001034:web:22b2043160fde86e8f59f3",
+  measurementId: "G-G9C9KDKVK5"
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const db=getFirestore(app);
+
+let studentName="";
+let studentUSN="";
+
+window.login=function(){
+
+studentName=document.getElementById("name").value;
+
+studentUSN=document.getElementById("usn").value;
+
+if(studentName==""||studentUSN==""){
+
+alert("Enter Details");
+
+return;
+
+}
+
+document.getElementById("login").style.display="none";
+
+document.getElementById("dashboard").style.display="block";
+
+document.getElementById("studentInfo").innerHTML=
+
+"<b>Name:</b> "+studentName+
+
+"<br><b>USN:</b> "+studentUSN;
+
+loadAttendance();
+
+}
+
+window.markAttendance=async function(){
+
+const today=new Date().toLocaleDateString();
+
+await addDoc(collection(db,"attendance"),{
+
+name:studentName,
+
+usn:studentUSN,
+
+date:today,
+
+status:"Present"
+
+});
+
+alert("Attendance Marked");
+
+loadAttendance();
+
+}
+
+async function loadAttendance(){
+
+const table=document.getElementById("attendanceTable");
+
+table.innerHTML="";
+
+const q=query(
+
+collection(db,"attendance"),
+
+where("usn","==",studentUSN)
+
+);
+
+const querySnapshot=await getDocs(q);
+
+querySnapshot.forEach((doc)=>{
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${doc.data().date}</td>
+
+<td>${doc.data().status}</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+window.logout=function(){
+
+location.reload();
+
+}
+
+</script>
+
+</body>
+</html>
